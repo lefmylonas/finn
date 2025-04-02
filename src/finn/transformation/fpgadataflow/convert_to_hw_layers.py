@@ -1375,6 +1375,7 @@ class InferBinaryMatrixVectorActivation(Transformation):
                 wdt = DataType["BINARY"]
                 mm_output = n.output[0]
                 W = model.get_initializer(mm_weight)
+                dynamic = get_by_name(graph.initializer, mm_weight) is None
                 # extract weight shape, note that ONNX and finn-hlslib
                 # make different assumptions about dim order here
                 # ONNX assumes W has (in, out) shape
@@ -1461,6 +1462,7 @@ class InferBinaryMatrixVectorActivation(Transformation):
                         noActivation=1,
                         numInputVectors=list(mm_in_shape[:-1]),
                         name=n.name,
+                        dynamic_input=dynamic,
                     )
                     graph.node.insert(node_ind, new_node)
                     # remove old node
@@ -1493,6 +1495,7 @@ class InferQuantizedMatrixVectorActivation(Transformation):
                 mm_out_shape = model.get_tensor_shape(mm_output)
                 idt = model.get_tensor_datatype(mm_input)
                 wdt = model.get_tensor_datatype(mm_weight)
+                dynamic = get_by_name(graph.initializer, mm_weight) is None
                 if idt.is_integer() and wdt.is_integer():
                     mm_output = n.output[0]
                     # if mm_weight is not constant, skip node
@@ -1603,6 +1606,7 @@ class InferQuantizedMatrixVectorActivation(Transformation):
                             noActivation=1,
                             numInputVectors=list(mm_in_shape[:-1]),
                             name="MVAU_" + n.name,
+                            dynamic_input=dynamic,
                         )
                         graph.node.insert(node_ind, new_node)
                         # remove old node

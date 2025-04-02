@@ -32,68 +32,53 @@
  *****************************************************************************/
 
 module $MODULE_NAME_AXI_WRAPPER$ #(
-	parameter	IS_MVU = $IS_MVU$,
-	parameter	COMPUTE_CORE = "$COMPUTE_CORE$",
-	parameter	PUMPED_COMPUTE = 0,
-	parameter	MW = $MW$,
-	parameter	MH = $MH$,
 	parameter	PE = $PE$,
 	parameter	SIMD = $SIMD$,
-    parameter   N_VECTORS = $N_VECTORS$,
-	parameter	ACTIVATION_WIDTH = $ACTIVATION_WIDTH$,
+	parameter	MW = $MW$,
+	parameter	MH = $MH$
+    
 	parameter	WEIGHT_WIDTH = $WEIGHT_WIDTH$,
-	parameter	ACCU_WIDTH = $ACCU_WIDTH$,
-        parameter       NARROW_WEIGHTS = $NARROW_WEIGHTS$,
-	parameter	SIGNED_ACTIVATIONS = $SIGNED_ACTIVATIONS$,
-	parameter	SEGMENTLEN = $SEGMENTLEN$,
-	parameter	FORCE_BEHAVIORAL = $FORCE_BEHAVIORAL$,
+	parameter   N_REPS = $N_REPS$,
 
 	// Safely deducible parameters
-	parameter	INPUT_1_STREAM_WIDTH_BA = (PE*WEIGHT_WIDTH+7)/8 * 8,
-	parameter 	INPUT_0_STREAM_WIDTH_BA = ((IS_MVU == 1 ? 1 : PE) * SIMD * ACTIVATION_WIDTH + 7) / 8 * 8,
-	parameter 	OUTPUT_STREAM_WIDTH_BA = (PE*ACCU_WIDTH + 7)/8 * 8
+	parameter	INPUT_STREAM_WIDTH_BA = (PE*WEIGHT_WIDTH+7)/8 * 8,
+	parameter 	OUTPUT_STREAM_WIDTH_BA = (PE*SIMD*WEIGHT_WIDTH+7)/8 * 8
 )(
 	// Global Control
-	(* X_INTERFACE_PARAMETER = "ASSOCIATED_BUSIF in1_V:in0_V:out_V, ASSOCIATED_RESET ap_rst_n" *)
+	(* X_INTERFACE_PARAMETER = "ASSOCIATED_BUSIF m_axis_0, ASSOCIATED_RESET ap_rst_n" *)
 	(* X_INTERFACE_INFO = "xilinx.com:signal:clock:1.0 ap_clk CLK" *)
 	input	ap_clk,
-	// (* X_INTERFACE_PARAMETER = "ASSOCIATED_RESET ap_rst_n" *)
-	// (* X_INTERFACE_INFO = "xilinx.com:signal:clock:1.0 ap_clk2x CLK" *)
-	// input   ap_clk2x,
+	//(* X_INTERFACE_INFO = "xilinx.com:signal:clock:1.0 ap_clk2x CLK" *)
+	//input	ap_clk2x,
 	(* X_INTERFACE_PARAMETER = "POLARITY ACTIVE_LOW" *)
 	input	ap_rst_n,
 
-	// Input 0 Stream
-	input	[INPUT_0_STREAM_WIDTH_BA-1:0]  in0_V_TDATA,
-	input	in0_V_TVALID,
-	output	in0_V_TREADY,
-    // Input 1 Stream
-	input	[INPUT_1_STREAM_WIDTH_BA-1:0]  in1_V_TDATA,
-	input   in1_V_TVALID,
-	output  in1_V_TREADY,
+	// Input stream
+	input	[INPUT_STREAM_WIDTH_BA-1:0]  s_axis_0_TDATA,
+	input	s_axis_0_TVALID,
+	output	s_axis_0_TREADY,
 	// Output Stream
-	output	[OUTPUT_STREAM_WIDTH_BA-1:0]  out_V_TDATA,
-	output	out_V_TVALID,
-	input	out_V_TREADY
+	output	[OUTPUT_STREAM_WIDTH_BA-1:0]  m_axis_0_TDATA,
+	output	m_axis_0_TVALID,
+	input	m_axis_0_TREADY
 );
 
-mvu_dyn_axi #(
-	.IS_MVU(IS_MVU), .COMPUTE_CORE(COMPUTE_CORE), .PUMPED_COMPUTE(PUMPED_COMPUTE), .MW(MW), .MH(MH), .PE(PE), .SIMD(SIMD), .N_VECTORS(N_VECTORS),
-	.ACTIVATION_WIDTH(ACTIVATION_WIDTH), .WEIGHT_WIDTH(WEIGHT_WIDTH), .ACCU_WIDTH(ACCU_WIDTH), .NARROW_WEIGHTS(NARROW_WEIGHTS),
-	.SIGNED_ACTIVATIONS(SIGNED_ACTIVATIONS), .SEGMENTLEN(SEGMENTLEN), .FORCE_BEHAVIORAL(FORCE_BEHAVIORAL)
-	) inst (
+dynamic_load #(
+	.PE(PE),
+	.SIMD(SIMD),
+	.MW(MW),
+	.MH(MH),
+	.WEIGHT_WIDTH(WEIGHT_WIDTH),
+	.N_REPS(N_REPS)
+) inst (
 	.ap_clk(ap_clk),
-	.ap_clk2x(1'b0), // wired to ground since double-pumped compute not enabled through FINN for now
 	.ap_rst_n(ap_rst_n),
-	.s_axis_input_0_tdata (in0_V_TDATA),
-	.s_axis_input_0_tvalid(in0_V_TVALID),
-	.s_axis_input_0_tready(in0_V_TREADY),
-	.s_axis_input_1_tdata (in1_V_TDATA),
-	.s_axis_input_1_tvalid(in1_V_TVALID),
-	.s_axis_input_1_tready(in1_V_TREADY),
-	.m_axis_output_tdata (out_V_TDATA),
-	.m_axis_output_tvalid(out_V_TVALID),
-	.m_axis_output_tready(out_V_TREADY)
-);
+	.ivld(s_axis_0_TVALID),
+	.irdy(s_axis_0_TREADY),
+	.idat(s_axis_0_TDATA),
+	.ovld(m_axis_0_TVALID),
+	.ordy(m_axis_0_TREADY),
+	.odat(m_axis_0_TDATA)
+);	
 
 endmodule // $MODULE_NAME_AXI_WRAPPER$
