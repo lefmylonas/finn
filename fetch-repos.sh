@@ -79,6 +79,8 @@ fetch_repo() {
     # absolute path for the repo local copy
     CLONE_TO=$SCRIPTPATH/deps/$REPO_DIR
 
+    git config --global --add safe.directory $CLONE_TO
+
     # clone repo if dir not found
     if [ ! -d "$CLONE_TO" ]; then
         git clone $REPO_URL $CLONE_TO

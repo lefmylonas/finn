@@ -54,13 +54,17 @@ recho () {
   echo -e "${RED}ERROR: $1${NC}"
 }
 
+# pip install -U "setuptools>=46.1.0" "setuptools_scm[toml]>=5" wheel platformdirs
+pip install -U "setuptools==65.6.3" "setuptools_scm[toml]>=5" wheel "platformdirs>=2,<3"
+
 # qonnx (using workaround for https://github.com/pypa/pip/issues/7953)
 # to be fixed in future Ubuntu versions (https://bugs.launchpad.net/ubuntu/+source/setuptools/+bug/1994016)
 mv ${FINN_ROOT}/deps/qonnx/pyproject.toml ${FINN_ROOT}/deps/qonnx/pyproject.tmp
 pip install --user -e ${FINN_ROOT}/deps/qonnx
 mv ${FINN_ROOT}/deps/qonnx/pyproject.tmp ${FINN_ROOT}/deps/qonnx/pyproject.toml
+
 # finn-experimental
-pip install --user -e ${FINN_ROOT}/deps/finn-experimental
+pip install --user -e ${FINN_ROOT}/deps/finn-experimental 
 # brevitas
 pip install --user -e ${FINN_ROOT}/deps/brevitas
 # pyverilator
