@@ -181,6 +181,11 @@ class CreateStitchedIP(Transformation):
                 axilite_intf_name[0],
                 len(self.intf_names["axilite"]),
             )
+            if axilite_intf_name[0] == "s_axilite":
+                self.connect_cmds.append(
+                    "set_property CONFIG.ASSOCIATED_BUSIF s_axis_0:m_axis_0:%s "
+                    "[get_bd_ports /ap_clk]" % (ext_if_name)
+                )
             self.intf_names["axilite"].append(ext_if_name)
         if len(aximm_intf_name) != 0:
             self.connect_cmds.append(

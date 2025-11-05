@@ -54,8 +54,8 @@ recho () {
   echo -e "${RED}ERROR: $1${NC}"
 }
 
-# pip install -U "setuptools>=46.1.0" "setuptools_scm[toml]>=5" wheel platformdirs
-pip install -U "setuptools==65.6.3" "setuptools_scm[toml]>=5" wheel "platformdirs>=2,<3"
+pip install -U "setuptools>=46.1.0" "setuptools_scm[toml]>=5" wheel platformdirs
+# pip install -U "setuptools==65.6.3" "setuptools_scm[toml]>=5" wheel "platformdirs>=2,<3"
 
 # qonnx (using workaround for https://github.com/pypa/pip/issues/7953)
 # to be fixed in future Ubuntu versions (https://bugs.launchpad.net/ubuntu/+source/setuptools/+bug/1994016)

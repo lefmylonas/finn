@@ -31,6 +31,14 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 NC='\033[0m' # No Color
 
+
+export FINN_DOCKER_PREBUILT=1
+export FINN_SKIP_DEP_REPOS=1
+export FINN_SKIP_BOARD_FILES=1
+export FINN_HOST_BUILD_DIR=/tools/finn-dev/build_dir
+export PYNQ_BOARD=ZCU104
+export PLATFORM_REPO_PATHS=/tools/finn/zcu104_dfx_platform
+
 # green echo
 gecho () {
   echo -e "${GREEN}$1${NC}"
@@ -71,16 +79,16 @@ SCRIPTPATH=$(dirname "$SCRIPT")
 
 # the settings below will be taken from environment variables if available,
 # otherwise the defaults below will be used
-: ${JUPYTER_PORT=8888}
+: ${JUPYTER_PORT=8889}
 : ${JUPYTER_PASSWD_HASH=""}
-: ${NETRON_PORT=8081}
+: ${NETRON_PORT=8082}
 : ${LOCALHOST_URL="localhost"}
 : ${NUM_DEFAULT_WORKERS=4}
 : ${FINN_SSH_KEY_DIR="$SCRIPTPATH/ssh_keys"}
 : ${PLATFORM_REPO_PATHS="/opt/xilinx/platforms"}
 : ${XRT_DEB_VERSION="xrt_202220.2.14.354_22.04-amd64-xrt"}
 : ${FINN_HOST_BUILD_DIR="/tmp/$DOCKER_INST_NAME"}
-: ${FINN_DOCKER_TAG="xilinx/finn:$(OLD_PWD=$(pwd); cd $SCRIPTPATH; git describe --always --tags --dirty; cd $OLD_PWD).$XRT_DEB_VERSION"}
+: ${FINN_DOCKER_TAG="xilinx/finn-dev:$(OLD_PWD=$(pwd); cd $SCRIPTPATH; git describe --always --tags --dirty; cd $OLD_PWD).$XRT_DEB_VERSION"}
 : ${FINN_DOCKER_PREBUILT="0"}
 : ${FINN_DOCKER_RUN_AS_ROOT="0"}
 : ${FINN_DOCKER_EXTRA=""}
@@ -188,7 +196,7 @@ fi
 # Launch container with current directory mounted
 # important to pass the --init flag here for correct Vivado operation, see:
 # https://stackoverflow.com/questions/55733058/vivado-synthesis-hangs-in-docker-container-spawned-by-jenkins
-DOCKER_BASE="docker run -t --rm $DOCKER_INTERACTIVE --tty --init --hostname $DOCKER_INST_NAME "
+DOCKER_BASE="docker run -t --name=finn-dev -d --rm $DOCKER_INTERACTIVE --tty --init --hostname $DOCKER_INST_NAME "
 DOCKER_EXEC="-e SHELL=/bin/bash "
 DOCKER_EXEC+="-w $SCRIPTPATH "
 DOCKER_EXEC+="-v $SCRIPTPATH:$SCRIPTPATH "
@@ -209,6 +217,7 @@ if [ "$FINN_DOCKER_RUN_AS_ROOT" = "0" ] && [ -z "$FINN_SINGULARITY" ];then
   DOCKER_EXEC+="-v /etc/passwd:/etc/passwd:ro "
   DOCKER_EXEC+="-v /etc/shadow:/etc/shadow:ro "
   DOCKER_EXEC+="-v /etc/sudoers.d:/etc/sudoers.d:ro "
+  DOCKER_EXEC+="-v $HOME/.vscode-server:$HOME/.vscode-server  "
   DOCKER_EXEC+="-v $FINN_SSH_KEY_DIR:$HOME/.ssh "
   DOCKER_EXEC+="--user $DOCKER_UID:$DOCKER_GID "
 else

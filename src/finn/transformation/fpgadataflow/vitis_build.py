@@ -255,6 +255,9 @@ class VitisLink(Transformation):
                     else:
                         mem_type = "DDR"
                         mem_idx = 1
+                    if "zcu104" in self.platform:
+                        node_mem_port = "%s%d" % (mem_type, mem_idx)
+                    else:
                         node_mem_port = "%s[%d]" % (mem_type, mem_idx)
                 config.append("sp=%s.m_axi_gmem0:%s" % (instance_names[node.name], node_mem_port))
             # connect streams
@@ -307,18 +310,32 @@ class VitisLink(Transformation):
         with open(script, "w") as f:
             f.write("#!/bin/bash \n")
             f.write("cd {}\n".format(link_dir))
-            f.write(
-                "v++ -t hw --platform %s --link %s"
-                " --kernel_frequency %d --config config.txt --optimize %s"
-                " --save-temps -R2 %s\n"
-                % (
-                    self.platform,
-                    " ".join(object_files),
-                    self.f_mhz,
-                    self.strategy.value,
-                    " ".join(debug_commands),
+            if "zcu104" in self.platform:
+                f.write(
+                    "v++ -t hw --platform %s --link %s"
+                    " --clock.defaultFreqHz %d --config config.txt --optimize %s"
+                    " --save-temps -R2 %s\n"
+                    % (
+                        self.platform,
+                        " ".join(object_files),
+                        self.f_mhz* 1000000,
+                        self.strategy.value,
+                        " ".join(debug_commands),
+                    )
                 )
-            )
+            else:
+                f.write(
+                    "v++ -t hw --platform %s --link %s"
+                    " --kernel_frequency %d --config config.txt --optimize %s"
+                    " --save-temps -R2 %s\n"
+                    % (
+                        self.platform,
+                        " ".join(object_files),
+                        self.f_mhz,
+                        self.strategy.value,
+                        " ".join(debug_commands),
+                    )
+                )
             f.write("cd {}\n".format(working_dir))
         bash_command = ["bash", script]
         process_compile = subprocess.Popen(bash_command, stdout=subprocess.PIPE)
