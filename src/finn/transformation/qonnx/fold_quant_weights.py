@@ -193,7 +193,15 @@ class FoldQuantWeights(Transformation):
                                 # inference
                             )
                             graph.value_info.append(div_tensor)
-                            model.set_initializer(div_tensor.name, scale)
+
+                            # succ_shape = model.get_tensor_shape(succ_input_name)
+
+                            # # reshape to match channels dimension
+                            # new_scale_shape = [1] * len(succ_shape)
+                            # new_scale_shape[1] = scale.shape[0]   # channel axis
+                            # scale = scale.reshape(new_scale_shape)
+
+                            # model.set_initializer(div_tensor.name, scale)
 
                             # Detect which input of the add-like successor is
                             # fed by the quantizer node to select the other
@@ -202,6 +210,15 @@ class FoldQuantWeights(Transformation):
                                 succ_input_name = successor.input[1]
                             else:
                                 succ_input_name = successor.input[0]
+
+                            succ_shape = model.get_tensor_shape(succ_input_name)
+                            # reshape to match channels dimension
+                            new_scale_shape = [1] * len(succ_shape)
+                            new_scale_shape[1] = scale.shape[0]   # channel axis
+                            scale = scale.reshape(new_scale_shape)
+
+                            model.set_initializer(div_tensor.name, scale)
+
 
                             act_mul_tensor = helper.make_tensor_value_info(
                                 model.make_new_valueinfo_name(),

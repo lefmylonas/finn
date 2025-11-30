@@ -95,6 +95,8 @@ class VerificationStepType(str, Enum):
     TIDY_UP_PYTHON = "initial_python"
     #: verify after step_streamline , using Python execution
     STREAMLINED_PYTHON = "streamlined_python"
+    #: verify after step_convert_to_hw using Python execution
+    CONVERT_TO_HW_PYTHON = "hw_python"
     #: verify after step_apply_folding_config, using C++ for each HLS node
     FOLDED_HLS_CPPSIM = "folded_hls_cppsim"
     #: verify after step_hw_ipgen
