@@ -469,8 +469,8 @@ def step_apply_folding_config(model: ModelWrapper, cfg: DataflowBuildConfig):
     """Apply the folding configuration file onto the model to set folding (parallelization)
     and other attributes, if config file is specified."""
 
+    model = model.transform(GiveUniqueNodeNames())
     if cfg.folding_config_file is not None:
-        model = model.transform(GiveUniqueNodeNames())
         model = model.transform(ApplyConfig(cfg.folding_config_file))
 
     if VerificationStepType.FOLDED_HLS_CPPSIM in cfg._resolve_verification_steps():
@@ -581,7 +581,7 @@ def step_set_fifo_depths(model: ModelWrapper, cfg: DataflowBuildConfig):
                 PrepareIP(cfg._resolve_fpga_part(), cfg._resolve_hls_clk_period())
             )
             model = model.transform(HLSSynthIP())
-            model = model.transform(PrepareRTLSim())
+            model = model.transform(PrepareRTLSim(behav=True))
             model = model.transform(AnnotateCycles())
             period = model.analysis(dataflow_performance)["max_cycles"] + 10
             model = model.transform(DeriveCharacteristic(period))
